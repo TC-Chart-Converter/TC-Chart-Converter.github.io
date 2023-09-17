@@ -1,0 +1,116 @@
+body {
+  font-family: sans-serif;
+  padding: 3em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1, h2, h3 {
+  text-align: center;
+}
+
+.bodycontainer {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1em;
+}
+
+.container {
+  padding: 2em;
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.warnings {
+  color: #c00;
+  font-weight: bold;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+.warnings > a {
+  color: #000;
+  font-weight: normal;
+  text-decoration: underline;
+  align-self: center;
+}
+
+.flexrow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.spacebetween {
+  justify-content: space-between;
+}
+
+.alignitemscenter {
+  align-items: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: max-content max-content max-content;
+  grid-column-gap: 1em;
+  grid-row-gap: 0.5em;
+  align-items: center;
+}
+
+.grid h3 {
+  grid-column: span 3;
+}
+
+#previewcontainer {
+  margin: 0 -25vw;
+  overflow-x: scroll;
+}
+
+#preview {
+  padding: 0 25vw;
+}
+
+#generatechart {
+  font-size: 1.5em;
+  font-weight: bold;
+  padding: 1em;
+}
+
+#slidemodes {
+  gap: 0;
+}
+
+#slidemodes img {
+  align-self: center;
+}
+
+ol, ul {
+  margin: 0;
+}
+
+p {
+  margin-bottom: 0;
+}
+
+abbr {
+  width: 11px;
+  height: 11px;
+
+  border: 1px solid gray;
+  border-radius: 999px;
+
+  font-weight: bold;
+  font-size: 10px;
+  line-height: 11px;
+  color: gray;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+}

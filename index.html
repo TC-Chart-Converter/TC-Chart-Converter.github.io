@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TC Chart Converter</title>
+  <link rel="stylesheet" href="index.css">
+  <script src="lib/midi-converter.js"></script>
+  <!--
+    init must always come first, than warnings,
+    and the rest can be loaded in any order
+  -->
+  <script src="src/init.js"></script>
+  <script src="src/warnings.js"></script>
+
+  <script src="src/color.js"></script>
+  <script src="src/generate.js"></script>
+  <script src="src/import.js"></script>
+  <script src="src/inputs.js"></script>
+  <script src="src/midiToNotes.js"></script>
+  <script src="src/preview.js"></script>
+  <script src="src/readMidi.js"></script>
+  <script src="src/save.js"></script>
+  <script src="src/settings.js"></script>
+</head>
+<body>
+<!-- bruh I handwrote all of this -->
+<div class="bodycontainer">
+  <h1>Trombone Champ Chart Converter</h1>
+
+  <div id="midicontainer" class="container alignitemscenter">
+    <h2><label for="midifile">MIDI file</label></h2>
+    <input type="file" id="midifile" name="midifile" accept=".mid">
+    <div class="grid">
+      <abbr
+        title="What slide mode to use. Examples for slide modes are included below (between the About and Version History sections). The default value is midi2tc.">i</abbr>
+      <span>Slide mode</span>
+      <div class="flexrow spacebetween">
+        <span>
+          <input type="radio" id="slidemidi2tc" name="slidemode" checked>
+          <label for="slidemidi2tc">midi2tc</label>
+        </span>
+        <span>
+          <input type="radio" id="slidetccc" name="slidemode">
+          <label for="slidetccc">tccc</label>
+        </span>
+      </div>
+
+      <abbr
+        title="Whether to clamp notes between midi pitches 47 and 73, the maximum range of vanilla Trombone Champ. If unchecked, generated notes may be unplayable.">i</abbr>
+      <label for="clamppitch">Clamp Pitch</label>
+      <input type="checkbox" id="clamppitch" name="clamppitch" checked>
+
+      <abbr
+        title="What quantization snap to use for warning about unquantized notes. This should be a power of 2. Alternatively, setting this to 0 will ignore all quantization warnings. Triplets (snap 12) are recognized automatically, regardless.">i</abbr>
+      <label for="snap">Snap</label>
+      <input type="number" id="snap" name="snap" min="0" max="192" value="32">
+    </div>
+    <div id="midiwarnings" class="warnings"></div>
+  </div>
+
+  <div id="metadatacontainer" class="container alignitemscenter">
+    <h2>Metadata</h2>
+    <h3><label for="importmetadatafile">Import from previous (optional)</label></h3>
+    <input type="file" id="importmetadatafile" name="importmetadatafile" accept=".tmb">
+    <button id="importmetadatabutton">Import</button>
+    <div class="grid">
+      <h3>- Song info -</h3>
+
+      <abbr title="Full song name, as shown in the lefthand info during song select">i</abbr>
+      <label for="songname">Song Name</label>
+      <input type="text" id="songname" name="songname">
+
+      <abbr title="Short song name, as shown in the righthand song selector">i</abbr>
+      <label for="shortname">Short Name</label>
+      <input type="text" id="shortname" name="shortname">
+
+      <abbr title="Composer or author of the song">i</abbr>
+      <label for="artist">Artist</label>
+      <input type="text" id="artist" name="artist">
+
+      <abbr title="Year the song was released">i</abbr>
+      <label for="releaseyear">Release Year</label>
+      <input type="number" id="releaseyear" name="releaseyear" value="2022">
+
+      <abbr title="Genre of the song">i</abbr>
+      <label for="genre">Genre</label>
+      <input type="text" id="genre" name="genre">
+
+      <abbr title="Song description, as shown in the lefthand song info">i</abbr>
+      <label for="description">Description</label>
+      <input type="text" id="description" name="description">
+
+      <h3>- Chart info -</h3>
+
+      <abbr title="Variable BPM and non-integer BPM are not supported">i</abbr>
+      <label for="bpm">BPM</label>
+      <input type="number" id="bpm" name="bpm" min="1" max="1000">
+
+      <abbr
+        title="How many measure lines to show in each bar. Usually 2 is fine for songs in 2/2 or 4/4 time and 3 is fine for songs in 3/4 or 6/8 time. For songs in other time signatures, this should usually be the number on the top of the time signature.">i</abbr>
+      <label for="beatsperbar">Beats Per Bar</label>
+      <input type="number" id="beatsperbar" name="beatsperbar" value="2" min="1" max="20">
+
+      <abbr title="Difficulty from 1 to 10 stars">i</abbr>
+      <label for="difficulty">Difficulty</label>
+      <input type="number" id="difficulty" name="difficulty" value="5" min="1" max="10">
+
+      <abbr
+        title="The higher this is, the faster the chart will scroll and the fewer notes will be on the screen at once. If unsure, set this to 180 and adjust from there.">i</abbr>
+      <label for="notespacing">Note Spacing</label>
+      <input type="number" id="notespacing" name="notespacing" min="1" max="1000" value="180">
+
+      <abbr title="Color of the start of the note">i</abbr>
+      <label for="notestartcolor">Note Start Color</label>
+      <div class="flexrow">
+        <input type="text" id="notestartcolortext" name="notestartcolortext">
+        <input type="color" id="notestartcolor" name="notestartcolor" value="#ff3600">
+      </div>
+
+      <abbr title="Color of the end of the note">i</abbr>
+      <label for="noteendcolor">Note End Color</label>
+      <div class="flexrow">
+        <input type="text" id="noteendcolortext" name="noteendcolortext">
+        <input type="color" id="noteendcolor" name="noteendcolor" value="#ffcc4c">
+      </div>
+
+      <h3>- Other -</h3>
+
+      <abbr title="Name of the song folder, required for old versions of TrombLoader">i</abbr>
+      <label for="foldername">Folder Name</label>
+      <input type="text" id="foldername" name="foldername" placeholder="Auto">
+
+      <abbr
+        title="The length of the song in measures. Leave this blank unless you need to manually set the endpoint.">i</abbr>
+      <label for="songendpoint">Song Endpoint</label>
+      <input type="number" id="songendpoint" name="songendpoint" placeholder="Auto">
+    </div>
+  </div>
+
+  <div>
+    <h2>Preview</h2>
+    <div id="previewcontainer">
+      <canvas id="preview" height="200"></canvas>
+    </div>
+  </div>
+
+  <div id="generatewarnings" class="warnings"></div>
+  <button id="generatechart">Generate Chart</button>
+
+  <div class="container">
+    <h2>About</h2>
+    <p>Converts a midi file (.mid) into a TrombLoader chart.</p>
+
+    <p>
+      Most of the instructions for how to make a chart are on the Trombone Champ modding Discord:<br>
+      <a href="https://discord.gg/KVzKRsbetJ">https://discord.gg/KVzKRsbetJ</a>
+    </p>
+
+    <p>Usage:</p>
+    <ol>
+      <li>Upload the midi above.</li>
+      <li>
+        Fill out the form
+        <ul>
+          <li>All fields must be filled in, except those in the Other section</li>
+          <li>Only input whole numbers. Decimals are not guaranteed to work.</li>
+          <li>Hover over the names of each field to see detailed info</li>
+        </ul>
+      </li>
+      <li>Click Generate Chart. The result will be downloaded as song.tmb</li>
+    </ol>
+
+    <p>Notes:</p>
+    <ul>
+      <li>Midi notes should be in the range 47 to 73 to match the game. Any notes outside this range will likely
+        be unplayable.
+      </li>
+      <li>Quantize your charts, the game hates unquantized notes.</li>
+      <li>Some midi editors use velocity 0 to indicate a note should turn off. This supports that. Don't otherwise
+        set velocity to 0.
+      </li>
+      <li>Unlike Midi2TromboneChamp, this squashes all tracks and has no slide track.</li>
+    </ul>
+
+    <p>
+      Nyx's converter, which I have shamelessly stolen most of the parsing logic from, can be found at<br>
+      <a href="https://github.com/NyxTheShield/Midi2TromboneChamp">
+        https://github.com/NyxTheShield/Midi2TromboneChamp
+      </a>
+    </p>
+  </div>
+
+  <div id="slidemodes" class="container">
+    <h2>Slide modes</h2>
+
+    <p>TCCC can interpret midi files in two ways to create slide notes. They are not interchangeable: Slides made for
+      tccc mode will likely not convert properly in other converters.</p>
+
+    <p>In the below examples, blue notes are midi notes. Note that a vertical gray line in the middle of a midi note
+      indicates that the note is released and pressed again. The green line is the Trombone Champ notes that will be
+      generated.</p>
+
+    <h3>midi2tc mode</h3>
+    <p>This is the format used by midi2tc.exe. When two notes overlap, the slide will start at the time and pitch of the
+      start of the first note and end at the time and pitch of the <em>start</em> of the second note.</p>
+    <p>Note starts with a slide:</p>
+    <img src="res/slide_midi2tc_start.png"/>
+    <p>Multiple slides:</p>
+    <img src="res/slide_midi2tc_mid.png"/>
+    <p>Note ends with a slide: This is not possible in midi2tc slide mode. In midi2tc.exe 0.3.0 and earlier, it can be
+      done by using channel 2.</p>
+
+    <h3>tccc mode</h3>
+    <p>This is TCCC's own format. When two notes overlap, the slide will start at the time and pitch of the start of the
+      first note and end at the time and pitch of the <em>end</em> of the second note.
+    </p>
+    <p>Note starts with a slide:</p>
+    <img src="res/slide_tccc_start.png"/>
+    <p>Multiple slides:</p>
+    <img src="res/slide_tccc_mid.png"/>
+    <p>Note ends with a slide:</p>
+    <img src="res/slide_tccc_end.png"/>
+    <p>Overlapping more than two notes is undefined behavior in tccc mode. Don't do it.</p>
+  </div>
+
+  <div class="container">
+    <h2>Version history</h2>
+    <p>
+      v1.7b:<br>
+      Fixed an issue where colors with r,g,b values less than 16 would fail to import, unless all were less than 16
+    </p>
+    <p>
+      v1.7a:<br>
+      Removed warning when bpm is not a whole number<br>
+      Added note about multiple overlapping sliders in tccc slider mode
+    </p>
+    <p>
+      v1.7:<br>
+      Added slide modes and slide mode info section<br>
+      Added support for lyrics<br>
+      Aligned info "icons" better
+    </p>
+    <p>
+      v1.6a:<br>
+      Reorganized the code
+    </p>
+    <p>
+      v1.6:<br>
+      Added hex color input<br>
+      Made the preview update when the color is changed<br>
+      Made info hovers more visible<br>
+      Restyled tables to now use grids
+    </p>
+    <p>
+      v1.5b:<br>
+      Fixed an issue where triplets could fail to connect
+    </p>
+    <p>
+      v1.5a:<br>
+      Renamed "measure" to "beat"
+    </p>
+    <p>
+      v1.5:<br>
+      Added preview<br>
+      Switched from vars to only lets and consts
+    </p>
+    <p>
+      v1.4:<br>
+      Load the midi eagerly instead of only at generate time<br>
+      Format warnings better and let users hide them<br>
+      Changed styling a bit<br>
+      Split the code into many files
+    </p>
+    <p>
+      v1.3a:<br>
+      Added randomly generated folder names to fix a name collision issue
+    </p>
+    <p>
+      v1.3:<br>
+      Added metadata importing<br>
+      Fixed an issue when a note ends at the same time as another starts<br>
+      Moved warnings to be above the button to make them easier to see<br>
+      Added placeholder for endpoint input<br>
+      Changed default note spacing: previously BPM, now 180
+    </p>
+    <p>
+      v1.2:<br>
+      Added option to clamp notes<br>
+      Added warnings for unsnapped notes<br>
+      Treat midi start-note with velocity 0 as end-note<br>
+      Added cleanup of object URLs
+    </p>
+    <p>
+      v1.1:<br>
+      Renamed from "MIDI to TMB" to "TCCC"<br>
+      Fixed default colors<br>
+      Added version history
+    </p>
+    <p>
+      v1.0:<br>
+      Initial release
+    </p>
+  </div>
+</div>
+<script>Init.init()</script>
+</body>
+</html>
