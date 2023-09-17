@@ -6,6 +6,11 @@ body {
   align-items: center;
 }
 
+.footer {
+  text-align: center;
+  font-size: small;
+}
+
 h1, h2, h3 {
   text-align: center;
 }
