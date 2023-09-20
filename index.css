@@ -96,6 +96,12 @@ h1, h2, h3 {
   align-self: center;
 }
 
+#pitchbend img {
+  align-self: center;
+  width: 60%;
+  height: auto;
+}
+
 ol, ul {
   margin: 0;
 }

@@ -53,6 +53,19 @@
         title="What quantization snap to use for warning about unquantized notes. This should be a power of 2. Alternatively, setting this to 0 will ignore all quantization warnings. Triplets (snap 12) are recognized automatically, regardless.">i</abbr>
       <label for="snap">Snap</label>
       <input type="number" id="snap" name="snap" min="0" max="192" value="32">
+
+      <abbr
+        title="What range to treat pitch bend events (e.g. if set to 2, pitch bend events can move notes up/down by a maximum of 2 semitones)">i</abbr>
+      <label for="pitchbendrange">Pitch Bend Range (semitones)</label>
+      <select name="pitchbendrange" id="pitchbendrange">
+        <option value="1">1</option>
+        <option value="2" selected="selected">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+      </select>
     </div>
     <div id="midiwarnings" class="warnings"></div>
   </div>
@@ -125,9 +138,9 @@
 
       <h3>- Other -</h3>
 
-      <abbr title="Name of the song folder, required for old versions of TrombLoader">i</abbr>
-      <label for="foldername">Folder Name</label>
-      <input type="text" id="foldername" name="foldername" placeholder="Auto">
+      <abbr title="Unique identifier for this specific song chart, this must not match any other chart.">i</abbr>
+      <label for="trackref">Track Ref</label>
+      <input type="text" id="trackref" name="trackref" placeholder="Auto">
 
       <abbr
         title="The length of the song in measures. Leave this blank unless you need to manually set the endpoint.">i</abbr>
@@ -220,6 +233,57 @@
     <p>Note ends with a slide:</p>
     <img src="res/slide_tccc_end.png"/>
     <p>Overlapping more than two notes is undefined behavior in tccc mode. Don't do it.</p>
+  </div>
+
+  <div id="pitchbend" class="container">
+    <h2>Pitch Bend Events</h2>
+
+    <p>TCCC can perform additional adjustments to the pitch of notes using MIDI Pitch Bend events, allowing you to 
+	   set notes to microtonal values.</p>
+	
+    <ul>
+      <li>In your DAW, MIDI pitch bend events are a numerical value that is converted to a change in pitch 
+          by the output device (e.g. your synthesizer plugin, soundfont player, etc).</li>
+      <ul>
+        <li>Tutorials if you are unfamiliar with MIDI pitch bends:</li>
+        <ul>
+          <li>Reaper: 
+            <a href="https://www.youtube.com/watch?v=4rOsXnQSoT8">Federico Bonacossa</a> </li>
+          <li>Ableton: 
+            <a href="https://quadrophone.com/synthesis/using-pitch-bend/">Using Pitch Bend - Quadrophone</a> </li>
+          <li>FL Studio: 
+            <a href="https://macprovideo.com/article/audio-software/fl-studio-automation-clips-vs-channel-editing-vs-per-note-editing">
+            Macprovideo (use the Channel Editing method)</a> </li>
+        </ul>
+        <li>Most output devices default to +-2 semitones, and some allow you to change this, but it varies across 
+            devices so it's best to check your own setup.</li>
+      </ul>
+      <br>
+      <li>In TCCC, the Pitch Bend Range option controls what range (in semitones) the MIDI events are converted to.</li>
+      <ul>
+        <li>E.g. At a Pitch Bend Range of 2, a maximum value pitch bend MIDI event will raise/lower the note pitch by 2 semitones.</li>
+        <li>Make sure this range matches the range of the DAW output device you used when making the MIDI.</li>
+      </ul>
+      <br>
+      <li>TCCC takes the pitch bend value at the start of a particular note, and shifts the entire note by that amount.</li>
+    </ul>
+
+      <h3>Examples</h3>
+    <p>Pitch bend event covers all notes, so all are shifted up by the same amount (the unadjusted note is shown faded out).</p>
+    <img src="res/pitch_example_both_notes.png"/>
+    
+    <p>Pitch bend event covers just the first note of the slide, this note is shifted down.</p>
+    <img src="res/pitch_example_first_note.png"/>
+    
+    <p>You can shift the start/end of a single-note slide by placing the pitch bend around just the start/end note. In this case the end
+      of the slide is shifted down.</p>
+    <img src="res/pitch_example_single_slide.png"/>
+    
+    <p> When shifting a note connected to the end of a slide, make sure to shift both the end note and the slide note that connects to it.</p>
+    <img src="res/pitch_example_second_note.png"/>
+    
+    <p>For pitch shift gradients/curves, the pitch shift amount is taken at the start point of each note.</p>
+    <img src="res/pitch_example_gradient.png"/>
   </div>
 
   <div class="container">

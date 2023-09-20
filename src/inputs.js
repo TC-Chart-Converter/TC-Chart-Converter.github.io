@@ -16,12 +16,12 @@ const Inputs = (function () {
     notespacing: "savednotespacing",
     notestartcolor: "note_color_start",
     noteendcolor: "note_color_end",
-    foldername: "trackRef",
+    trackref: "trackRef",
     songendpoint: "endpoint",
   };
 
   /** Inputs that are not required to be filled in */
-  const optionalInputNames = new Set(["foldername", "songendpoint"]);
+  const optionalInputNames = new Set(["trackref", "songendpoint"]);
 
   /** Inputs that need to be formatted as ints */
   const intInputNames = new Set([

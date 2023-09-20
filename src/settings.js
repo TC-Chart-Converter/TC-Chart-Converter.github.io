@@ -1,7 +1,8 @@
 const Settings = (function () {
   const settings = {};
 
-  const settingsNames = ["clamppitch", "snap", "slidemidi2tc", "slidetccc"];
+  const settingsNames = 
+    ["clamppitch", "snap", "slidemidi2tc", "slidetccc", "pitchbendrange"];
 
   function getSetting(name) {
     switch (name) {
@@ -11,6 +12,8 @@ const Settings = (function () {
         return settings[name].checked;
       case "snap":
         return Number(settings["snap"].value);
+      case "pitchbendrange":
+        return Number(settings[name].value);
       default:
         throw `Unknown setting: ${name}`;
     }
