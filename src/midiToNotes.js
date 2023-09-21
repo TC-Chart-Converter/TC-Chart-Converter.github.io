@@ -270,7 +270,7 @@ const MidiToNotes = (function () {
     return 0.0;
   }
 
-  /***
+  /**
    * Converts a given MIDI note pitch to TC pitch, and applies pitch bend.
    * The note is clamped (and a warning shown) if it goes out of range.
    */
