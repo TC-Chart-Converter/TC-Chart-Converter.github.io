@@ -14,7 +14,8 @@ The standards below are non-exhaustive but I will update them when relevant.
 - [ ] Changes and basic functionality are tested
   - Open the HTML locally and verify it renders correctly and does not produce console messages (errors, warnings, logs)
   - If changing anything other than HTML and CSS, test a known working MIDI. I use Snow Halation, whose MIDI is at
-    `/test/sno.mid` and TMB is at `/test/sno.tmb`. The 
+    `/test/sno.mid` and TMB is at `/test/sno.tmb`. Other resources for this song are available elsewhere (such as
+    TootTally where the song has id 854).
     - Upload the MIDI in the top box and select tccc slide mode
     - Upload the TMB in the second box and ensure the right settings get loaded
     - Ensure the preview looks correct
