@@ -216,7 +216,7 @@ const MidiToNotes = (function () {
     }
   }
 
-  /***
+  /**
    * Collects all pitch bend events in the MIDI and converts the 
    * pitch bend value into semitones.
    */
@@ -240,12 +240,12 @@ const MidiToNotes = (function () {
     }
   }
 
-  /***
+  /**
    * Finds the pitch adjust amount at a given time in the MIDI.
    */
   function getPitchBendAdjustmentAtTime(midiTime) {
-    let pitchEvent = {time:  -1, value: 0};
-    let nextPitchEvent = {time:  -1, value: 0};
+    let pitchEvent = { time: -1, value: 0 };
+    let nextPitchEvent = { time: -1, value: 0 };
 
     for (let i = 0; i < MidiToNotes.pitchBendEvents.length; i++) {
       if (MidiToNotes.pitchBendEvents[i].time <= midiTime) {
@@ -271,7 +271,7 @@ const MidiToNotes = (function () {
     return 0.0;
   }
 
-  /***
+  /**
    * Converts a given MIDI note pitch to TC pitch, and applies pitch bend.
    * The note is clamped (and a warning shown) if it goes out of range.
    */

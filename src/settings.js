@@ -11,7 +11,6 @@ const Settings = (function () {
       case "slidetccc":
         return settings[name].checked;
       case "snap":
-        return Number(settings["snap"].value);
       case "pitchbendrange":
         return Number(settings[name].value);
       default:
