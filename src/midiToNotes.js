@@ -239,7 +239,7 @@ const MidiToNotes = (function () {
     }
   }
 
-  /***
+  /**
    * Finds the pitch adjust amount at a given time in the MIDI.
    */
   function getPitchBendAdjustmentAtTime(midiTime) {
