@@ -216,7 +216,7 @@ const MidiToNotes = (function () {
     }
   }
 
-  /***
+  /**
    * Collects all pitch bend events in the MIDI and converts the 
    * pitch bend value into semitones.
    */
