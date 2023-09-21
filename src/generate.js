@@ -8,7 +8,7 @@ const Generate = (function () {
     if (!Inputs.verifyInputs() || MidiToNotes.notes.length === 0) {
       alert(
         "Please ensure a valid midi is uploaded and all fields are filled\n" +
-        "(Folder Name and Song Endpoint can be empty)"
+          "(Folder Name and Song Endpoint can be empty)"
       );
       return;
     }
