@@ -239,21 +239,21 @@
     <h2>Pitch Bend Events</h2>
 
     <p>TCCC can perform additional adjustments to the pitch of notes using MIDI Pitch Bend events, allowing you to 
-	   set notes to microtonal values.</p>
-	
+      set notes to microtonal values.</p>
+
     <ul>
       <li>In your DAW, MIDI pitch bend events are a numerical value that is converted to a change in pitch 
-          by the output device (e.g. your synthesizer plugin, soundfont player, etc).</li>
+        by the output device (e.g. your synthesizer plugin, soundfont player, etc).</li>
       <ul>
         <li>Tutorials if you are unfamiliar with MIDI pitch bends:</li>
         <ul>
           <li>Reaper: 
-            <a href="https://www.youtube.com/watch?v=4rOsXnQSoT8">Federico Bonacossa</a> </li>
+            <a href="https://www.youtube.com/watch?v=4rOsXnQSoT8">Federico Bonacossa</a></li>
           <li>Ableton: 
-            <a href="https://quadrophone.com/synthesis/using-pitch-bend/">Using Pitch Bend - Quadrophone</a> </li>
+            <a href="https://quadrophone.com/synthesis/using-pitch-bend/">Using Pitch Bend - Quadrophone</a></li>
           <li>FL Studio: 
             <a href="https://macprovideo.com/article/audio-software/fl-studio-automation-clips-vs-channel-editing-vs-per-note-editing">
-            Macprovideo (use the Channel Editing method)</a> </li>
+            Macprovideo (use the Channel Editing method)</a></li>
         </ul>
         <li>Most output devices default to +-2 semitones, and some allow you to change this, but it varies across 
             devices so it's best to check your own setup.</li>
@@ -271,23 +271,27 @@
       <h3>Examples</h3>
     <p>Pitch bend event covers all notes, so all are shifted up by the same amount (the unadjusted note is shown faded out).</p>
     <img src="res/pitch_example_both_notes.png"/>
-    
+
     <p>Pitch bend event covers just the first note of the slide, this note is shifted down.</p>
     <img src="res/pitch_example_first_note.png"/>
-    
+
     <p>You can shift the start/end of a single-note slide by placing the pitch bend around just the start/end note. In this case the end
       of the slide is shifted down.</p>
     <img src="res/pitch_example_single_slide.png"/>
-    
+
     <p> When shifting a note connected to the end of a slide, make sure to shift both the end note and the slide note that connects to it.</p>
     <img src="res/pitch_example_second_note.png"/>
-    
+
     <p>For pitch shift gradients/curves, the pitch shift amount is taken at the start point of each note.</p>
     <img src="res/pitch_example_gradient.png"/>
   </div>
 
   <div class="container">
     <h2>Version history</h2>
+    <p>
+      v1.8:<br>
+      Added support for converting MIDI pitch bend events into note pitch adjustments
+    </p>
     <p>
       v1.7d:<br>
       Added footer - Thanks DerpyChap
