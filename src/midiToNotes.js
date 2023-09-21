@@ -247,26 +247,17 @@ const MidiToNotes = (function () {
     let pitchEvent = { time: -1, value: 0 };
     let nextPitchEvent = { time: -1, value: 0 };
 
-    for (let i = 0; i < MidiToNotes.pitchBendEvents.length; i++) {
-      if (MidiToNotes.pitchBendEvents[i].time <= midiTime) {
-        if (i + 1 >= MidiToNotes.pitchBendEvents.length) {
-          //Reached the last pitch bend event.
-          pitchEvent = MidiToNotes.pitchBendEvents[i];
-          return pitchEvent.value;
-        }
-        else if (MidiToNotes.pitchBendEvents[i + 1].time > midiTime) {
-          //Pitch bend is between the events before/after the current time.
-          pitchEvent = MidiToNotes.pitchBendEvents[i];
-          nextPitchEvent = MidiToNotes.pitchBendEvents[i + 1];
+    const eventIndex = MidiToNotes.pitchBendEvents.findLastIndex((event) => event.time <= midiTime);
+    if (eventIndex === -1) return 0;
+    const pitchEvent = MidiToNotes.pitchBendEvents[eventIndex];
 
-          var timeDelta = nextPitchEvent.time - pitchEvent.time;
-          var pitchDelta = nextPitchEvent.value - pitchEvent.value;
-          
-          return pitchEvent.value + 
-            (((midiTime - pitchEvent.time) / timeDelta) * pitchDelta);
-        }
-      }
-    }
+    if (eventIndex === MidiToNotes.pitchBendEvents.length - 1) return pitchEvent.value;
+    const nextPitchEvent = MidiToNotes.pitchBendEvents[eventIndex + 1];
+
+    const timeDelta = nextPitchEvent.time - pitchEvent.time;
+    const pitchDelta = nextPitchEvent.value - pitchEvent.value;
+
+    return pitchEvent.value + (midiTime - pitchEvent.time) / timeDelta * pitchDelta;
 
     return 0.0;
   }
