@@ -122,9 +122,9 @@ const MidiToNotes = (function () {
         // We ignore note-off events for pitches other than the current one
         // which prevents slide-start noteOffs from ending slides
         if (currentNote && pitch === currentNote.startPitch) {
-		      const { startTime, startPitch, startPitchBend } = currentNote;
+          const { startTime, startPitch, startPitchBend } = currentNote;
           const length = time - startTime;
-		      const adjustedStartPitch = AdjustPitch(startPitch, startPitchBend, time);
+          const adjustedStartPitch = AdjustPitch(startPitch, startPitchBend, time);
 
           MidiToNotes.notes.push([
             startTime,
@@ -144,8 +144,8 @@ const MidiToNotes = (function () {
         if (currentNote) {
           const { startTime, startPitch, startPitchBend } = currentNote;
           const length = time - startTime;
-		      const adjustedStartPitch = AdjustPitch(startPitch, startPitchBend, time);
-		      const adjustedEndPitch = AdjustPitch(pitch, pitchBend, time);
+          const adjustedStartPitch = AdjustPitch(startPitch, startPitchBend, time);
+          const adjustedEndPitch = AdjustPitch(pitch, pitchBend, time);
           const pitchDelta = adjustedEndPitch - adjustedStartPitch;
 
           MidiToNotes.notes.push([
@@ -180,8 +180,8 @@ const MidiToNotes = (function () {
         if (currentNote && pitch === currentNote.endPitch) {
           const { startTime, startPitch, endPitch, startPitchBend, endPitchBend } = currentNote;
           const length = time - startTime;
-		      const adjustedStartPitch = AdjustPitch(startPitch, startPitchBend, time);
-		      const adjustedEndPitch = AdjustPitch(endPitch, endPitchBend, time);
+          const adjustedStartPitch = AdjustPitch(startPitch, startPitchBend, time);
+          const adjustedEndPitch = AdjustPitch(endPitch, endPitchBend, time);
           const pitchDelta = adjustedEndPitch - adjustedStartPitch;
 
           MidiToNotes.notes.push([
