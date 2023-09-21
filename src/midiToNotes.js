@@ -244,9 +244,6 @@ const MidiToNotes = (function () {
    * Finds the pitch adjust amount at a given time in the MIDI.
    */
   function getPitchBendAdjustmentAtTime(midiTime) {
-    let pitchEvent = { time: -1, value: 0 };
-    let nextPitchEvent = { time: -1, value: 0 };
-
     const eventIndex = MidiToNotes.pitchBendEvents.findLastIndex((event) => event.time <= midiTime);
     if (eventIndex === -1) return 0;
     const pitchEvent = MidiToNotes.pitchBendEvents[eventIndex];
@@ -258,8 +255,6 @@ const MidiToNotes = (function () {
     const pitchDelta = nextPitchEvent.value - pitchEvent.value;
 
     return pitchEvent.value + (midiTime - pitchEvent.time) / timeDelta * pitchDelta;
-
-    return 0.0;
   }
 
   /**
