@@ -123,15 +123,19 @@ const MidiToNotes = (function () {
         if (currentNote && pitch === currentNote.startPitch) {
           const { startTime, startPitch, startPitchBend } = currentNote;
           const length = event.time - startTime;
+          const endPitchBend = getPitchBendAdjustmentAtTime(event.time);
           const tcStartPitch = 
-            convertPitch(startPitch, startPitchBend, event.time, timeDivision);
+            convertPitch(startPitch, startPitchBend, startTime, timeDivision);
+          const tcEndPitch = 
+            convertPitch(pitch, endPitchBend, event.time, timeDivision);
+          const tcPitchDelta = tcEndPitch - tcStartPitch;
 
           MidiToNotes.notes.push([
             startTime / timeDivision,
             length > 0 ? length / timeDivision : defaultNoteLength,
             tcStartPitch,
-            0,
-            tcStartPitch,
+            tcPitchDelta,
+            tcEndPitch,
           ]);
 
           currentNote = undefined;
@@ -178,7 +182,8 @@ const MidiToNotes = (function () {
         // We ignore note-off events for pitches other than the current one
         // which prevents slide-start noteOffs from ending slides
         if (currentNote && pitch === currentNote.endPitch) {
-          const { startTime, startPitch, endPitch, startPitchBend, endPitchBend } = currentNote;
+          const { startTime, startPitch, endPitch, startPitchBend } = currentNote;
+          const endPitchBend = getPitchBendAdjustmentAtTime(event.time);
           const length = event.time - startTime;
           const tcStartPitch = 
             convertPitch(startPitch, startPitchBend, event.time, timeDivision);
@@ -202,14 +207,12 @@ const MidiToNotes = (function () {
 
         if (currentNote) {
           currentNote.endPitch = pitch;
-          currentNote.endPitchBend = pitchBend;
         } else {
           currentNote = {
             startTime: event.time,
             startPitch: pitch,
             endPitch: pitch,
-            startPitchBend: pitchBend,
-            endPitchBend: pitchBend
+            startPitchBend: pitchBend
           };
         }
       }

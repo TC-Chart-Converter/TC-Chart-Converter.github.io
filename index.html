@@ -242,47 +242,36 @@
       set notes to microtonal values.</p>
 
     <ul>
-      <li>In your DAW, MIDI pitch bend events are a numerical value that is converted to a change in pitch 
-        by the output device (e.g. your synthesizer plugin, soundfont player, etc).</li>
-      <ul>
-        <li>Tutorials if you are unfamiliar with MIDI pitch bends:</li>
-        <ul>
-          <li>Reaper: 
-            <a href="https://www.youtube.com/watch?v=4rOsXnQSoT8">Federico Bonacossa</a></li>
-          <li>Ableton: 
-            <a href="https://quadrophone.com/synthesis/using-pitch-bend/">Using Pitch Bend - Quadrophone</a></li>
-          <li>FL Studio: 
-            <a href="https://macprovideo.com/article/audio-software/fl-studio-automation-clips-vs-channel-editing-vs-per-note-editing">
-            Macprovideo (use the Channel Editing method)</a></li>
-        </ul>
-        <li>Most output devices default to +-2 semitones, and some allow you to change this, but it varies across 
-            devices so it's best to check your own setup.</li>
-      </ul>
-      <br>
-      <li>In TCCC, the Pitch Bend Range option controls what range (in semitones) the MIDI events are converted to.</li>
+      <li>The Pitch Bend Range option controls what range (in semitones) the MIDI events are converted to.</li>
       <ul>
         <li>E.g. At a Pitch Bend Range of 2, a maximum value pitch bend MIDI event will raise/lower the note pitch by 2 semitones.</li>
-        <li>Make sure this range matches the range of the DAW output device you used when making the MIDI.</li>
+        <li>Make sure this range matches the range of the DAW output device you used when making the MIDI (e.g. your 
+          synth plugin, soundfont player, etc).</li> 
+          <ul>
+            <li>Most default to +-2 semitones, but it varies across devices so it's best to check your setup.</li>
+          </ul>
       </ul>
       <br>
-      <li>TCCC takes the pitch bend value at the start of a particular note, and shifts the entire note by that amount.</li>
+      <li>TCCC takes the pitch bend values at the start and end of a particular note, and shifts the start/end by that amount.</li>
     </ul>
 
       <h3>Examples</h3>
-    <p>Pitch bend event covers all notes, so all are shifted up by the same amount (the unadjusted note is shown faded out).</p>
+    <p>Pitch bend event covers all notes, so all are shifted up by the same amount (the unadjusted note is shown faded 
+      out). Make sure your desired pitch bend finishes after the note end.</p>
     <img src="res/pitch_example_both_notes.png"/>
 
-    <p>Pitch bend event covers just the first note of the slide, this note is shifted down.</p>
+    <p>Pitch bend event covers just the start of the first note of the slide, so the start is shifted down.</p>
     <img src="res/pitch_example_first_note.png"/>
 
-    <p>You can shift the start/end of a single-note slide by placing the pitch bend around just the start/end note. In this case the end
-      of the slide is shifted down.</p>
+    <p>You can shift the start/end of a single-note slide by placing the pitch bend around just the start/end note. 
+      In this case the end of the slide is shifted down.</p>
     <img src="res/pitch_example_single_slide.png"/>
 
-    <p> When shifting a note connected to the end of a slide, make sure to shift both the end note and the slide note that connects to it.</p>
+    <p>When shifting a note connected to the end of a slide, make sure to shift both the end note and the slide note 
+      that connects to it.</p>
     <img src="res/pitch_example_second_note.png"/>
 
-    <p>For pitch shift gradients/curves, the pitch shift amount is taken at the start point of each note.</p>
+    <p>For pitch shift gradients/curves, the pitch shift amount is taken at the start and end of each note.</p>
     <img src="res/pitch_example_gradient.png"/>
   </div>
 
