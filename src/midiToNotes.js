@@ -241,7 +241,10 @@ const MidiToNotes = (function () {
   }
 
   /**
-   * Finds the pitch adjust amount at a given time in the MIDI.
+   * Finds the pitch adjust amount at a given time in the MIDI. If the MIDI time
+   * is between two pitch bend events then the amount is found by a linear 
+   * interpolation between the previous and next events. E.g. a time halfway between 
+   * events of +0.5 and +1.0 semitones will have an adjust amount of +0.75.
    */
   function getPitchBendAdjustmentAtTime(midiTime) {
     const eventIndex = MidiToNotes.pitchBendEvents.findLastIndex((event) => event.time <= midiTime);
