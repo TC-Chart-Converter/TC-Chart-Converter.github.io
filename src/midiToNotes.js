@@ -148,7 +148,7 @@ const MidiToNotes = (function () {
           const { startTime, startPitch, startPitchBend } = currentNote;
           const length = event.time - startTime;
           const tcStartPitch = 
-            convertPitch(startPitch, startPitchBend, event.time, timeDivision);
+            convertPitch(startPitch, startPitchBend, startTime, timeDivision);
           const tcEndPitch = 
             convertPitch(pitch, pitchBend, event.time, timeDivision);
           const tcPitchDelta = tcEndPitch - tcStartPitch;
@@ -186,7 +186,7 @@ const MidiToNotes = (function () {
           const endPitchBend = getPitchBendAdjustmentAtTime(event.time);
           const length = event.time - startTime;
           const tcStartPitch = 
-            convertPitch(startPitch, startPitchBend, event.time, timeDivision);
+            convertPitch(startPitch, startPitchBend, startTime, timeDivision);
           const tcEndPitch = 
             convertPitch(endPitch, endPitchBend, event.time, timeDivision);
           const tcPitchDelta = tcEndPitch - tcStartPitch;
@@ -264,25 +264,26 @@ const MidiToNotes = (function () {
   }
 
   /**
-   * Converts a given MIDI note pitch to TC pitch, and applies pitch bend.
-   * The note is clamped (and a warning shown) if it goes out of range.
+   * Applies pitch bend, validates the final note, then converts to TC format.
+   * Warnings are added for notes that are either out of range or unsnapped,
+   * out of range pitches will also optionally be clamped.
    */
   function convertPitch(midiPitch, midiPitchBend, midiTime, timeDivision) {
-    const minTcPitch = -178.75;
-    const maxTcPitch = 178.75;
-    let tcPitch = (midiPitch - 60) * 13.75;
-    let tcPitchBend = midiPitchBend * 13.75;
-    let adjustedPitch = tcPitch + tcPitchBend;
+    const snaps = [Settings.getSetting("snap"), 12];
+    const clampPitch = Settings.getSetting("clamppitch");
+    let adjustedMidiPitch = midiPitch + midiPitchBend;
 
-    if (adjustedPitch < minTcPitch || adjustedPitch > maxTcPitch) {
-      midiWarnings.add("Pitch bend adjustment clamped (out of range)", {
-            adjustedPitch, beat: midiTime / timeDivision
-      });
+    warnIfUnsnapped(midiTime, timeDivision, snaps);
 
-      adjustedPitch = Math.min(Math.max(adjustedPitch, minTcPitch), maxTcPitch);
+    if (adjustedMidiPitch < 47 || adjustedMidiPitch > 73) {
+      midiWarnings.add(
+        clampPitch ? "Pitch clamped" : "Pitch out of range",
+        { adjustedMidiPitch, beat: midiTime / timeDivision }
+      );
+      if (clampPitch) adjustedMidiPitch = Math.min(Math.max(adjustedMidiPitch, 47), 73);
     }
 
-    return adjustedPitch;
+    return (adjustedMidiPitch - 60) * 13.75;
   }
 
   function generateLyrics(sortedMidiEvents, timeDivision) {
@@ -303,23 +304,9 @@ const MidiToNotes = (function () {
   }
 
   function generateWarnings(sortedMidiEvents, timeDivision) {
-    const clampPitch = Settings.getSetting("clamppitch");
-    const snaps = [Settings.getSetting("snap"), 12];
-
     for (const event of sortedMidiEvents) {
       const eventType = getEventType(event);
-      if (eventType === "noteOn" || eventType === "noteOff") {
-        warnIfUnsnapped(event.time, timeDivision, snaps);
-
-        let pitch = event.data[0];
-        if (pitch < 47 || pitch > 73) {
-          midiWarnings.add(
-            clampPitch ? "Pitch clamped" : "Pitch out of range",
-            { pitch, beat: Math.floor(event.time / timeDivision) }
-          );
-          if (clampPitch) pitch = Math.min(Math.max(pitch, 47), 73);
-        }
-      } else if (eventType === "meta") {
+      if (eventType === "meta") {
         if (event.metaType === 81 && event.time !== 0) {
           // tempo change
           midiWarnings.add("Tempo change (unsupported)", {
