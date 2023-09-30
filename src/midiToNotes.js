@@ -228,10 +228,10 @@ const MidiToNotes = (function () {
 
     for (const event of sortedMidiEvents) {
       if (getEventType(event) === "pitchBend") {
-        //A MIDI pitch bend event consists of two bytes 0aaaaaaa and 0bbbbbbb,
-        //These are combined (bbbbbbbaaaaaaa) to form a value of 0-16383,
-        //with the median (8192) being no bend. This is converted to semitones
-        //according to the range specified in the settings.
+        // A MIDI pitch bend event consists of two bytes 0aaaaaaa and 0bbbbbbb,
+        // These are combined (bbbbbbbaaaaaaa) to form a value of 0-16383,
+        // with the median (8192) being no bend. This is converted to semitones
+        // according to the range specified in the settings.
         const midiPitchBend = ((event.data[1] << 7 | event.data[0]) - 8192) / 8192;
         const pitchEvent = {
           time: event.time,
