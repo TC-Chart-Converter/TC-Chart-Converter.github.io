@@ -8,6 +8,7 @@ const MidiToNotes = (function () {
   function generateNotes(midi) {
     console.log(midi);
     MidiToNotes.notes = [];
+    MidiToNotes.pitchBendEvents = [];
     midiWarnings.clear();
 
     const { timeDivision } = midi;
@@ -15,8 +16,8 @@ const MidiToNotes = (function () {
     /** All the events in the midi file, sorted by time */
     const sortedMidiEvents = getSortedMidiEvents(midi);
 
+    collectPitchBendEvents(sortedMidiEvents, timeDivision);
     generateWarnings(sortedMidiEvents, timeDivision);
-    midiWarnings.display();
 
     // Calculate endpoint
     for (let i = sortedMidiEvents.length - 1; i >= 0; i--) {
@@ -39,6 +40,7 @@ const MidiToNotes = (function () {
 
     generateLyrics(sortedMidiEvents, timeDivision);
 
+    midiWarnings.display();
     Preview.display();
   }
 
@@ -47,6 +49,8 @@ const MidiToNotes = (function () {
       return "noteOff";
     } else if (event.type === 9) {
       return "noteOn";
+    } else if (event.type === 14) {
+      return "pitchBend";
     } else if (event.type === 255) {
       return "meta";
     } else {
@@ -117,42 +121,51 @@ const MidiToNotes = (function () {
         // We ignore note-off events for pitches other than the current one
         // which prevents slide-start noteOffs from ending slides
         if (currentNote && pitch === currentNote.startPitch) {
-          const { startTime, startPitch } = currentNote;
-
+          const { startTime, startPitch, startPitchBend } = currentNote;
           const length = event.time - startTime;
+          const endPitchBend = getPitchBendAdjustmentAtTime(event.time);
+          const tcStartPitch = 
+            convertPitch(startPitch, startPitchBend, startTime, timeDivision);
+          const tcEndPitch = 
+            convertPitch(pitch, endPitchBend, event.time, timeDivision);
+          const tcPitchDelta = tcEndPitch - tcStartPitch;
 
           MidiToNotes.notes.push([
             startTime / timeDivision,
             length > 0 ? length / timeDivision : defaultNoteLength,
-            (startPitch - 60) * 13.75,
-            0,
-            (startPitch - 60) * 13.75,
+            tcStartPitch,
+            tcPitchDelta,
+            tcEndPitch,
           ]);
 
           currentNote = undefined;
         }
       } else if (getEventType(event) === "noteOn") {
         const pitch = event.data[0];
+        const pitchBend = getPitchBendAdjustmentAtTime(event.time);
 
         if (currentNote) {
-          const { startTime, startPitch } = currentNote;
-
+          const { startTime, startPitch, startPitchBend } = currentNote;
           const length = event.time - startTime;
-          const endPitch = pitch;
-          const pitchDelta = endPitch - startPitch;
+          const tcStartPitch = 
+            convertPitch(startPitch, startPitchBend, startTime, timeDivision);
+          const tcEndPitch = 
+            convertPitch(pitch, pitchBend, event.time, timeDivision);
+          const tcPitchDelta = tcEndPitch - tcStartPitch;
 
           MidiToNotes.notes.push([
             startTime / timeDivision,
             length > 0 ? length / timeDivision : defaultNoteLength,
-            (startPitch - 60) * 13.75,
-            pitchDelta * 13.75,
-            (endPitch - 60) * 13.75,
+            tcStartPitch,
+            tcPitchDelta,
+            tcEndPitch,
           ]);
         }
 
         currentNote = {
           startTime: event.time,
           startPitch: pitch,
+          startPitchBend: pitchBend,
         };
       }
     }
@@ -169,23 +182,28 @@ const MidiToNotes = (function () {
         // We ignore note-off events for pitches other than the current one
         // which prevents slide-start noteOffs from ending slides
         if (currentNote && pitch === currentNote.endPitch) {
-          const { startTime, startPitch, endPitch } = currentNote;
-
+          const { startTime, startPitch, endPitch, startPitchBend } = currentNote;
+          const endPitchBend = getPitchBendAdjustmentAtTime(event.time);
           const length = event.time - startTime;
-          const pitchDelta = endPitch - startPitch;
+          const tcStartPitch = 
+            convertPitch(startPitch, startPitchBend, startTime, timeDivision);
+          const tcEndPitch = 
+            convertPitch(endPitch, endPitchBend, event.time, timeDivision);
+          const tcPitchDelta = tcEndPitch - tcStartPitch;
 
           MidiToNotes.notes.push([
             startTime / timeDivision,
             length > 0 ? length / timeDivision : defaultNoteLength,
-            (startPitch - 60) * 13.75,
-            pitchDelta * 13.75,
-            (endPitch - 60) * 13.75,
+            tcStartPitch,
+            tcPitchDelta,
+            tcEndPitch,
           ]);
 
           currentNote = undefined;
         }
       } else if (getEventType(event) === "noteOn") {
         const pitch = event.data[0];
+        const pitchBend = getPitchBendAdjustmentAtTime(event.time);
 
         if (currentNote) {
           currentNote.endPitch = pitch;
@@ -194,10 +212,78 @@ const MidiToNotes = (function () {
             startTime: event.time,
             startPitch: pitch,
             endPitch: pitch,
+            startPitchBend: pitchBend
           };
         }
       }
     }
+  }
+
+  /**
+   * Collects all pitch bend events in the MIDI and converts the 
+   * pitch bend value into semitones.
+   */
+  function collectPitchBendEvents(sortedMidiEvents) {
+    MidiToNotes.pitchBendEvents = [];
+
+    for (const event of sortedMidiEvents) {
+      if (getEventType(event) === "pitchBend") {
+        // A MIDI pitch bend event consists of two bytes 0aaaaaaa and 0bbbbbbb,
+        // These are combined (bbbbbbbaaaaaaa) to form a value of 0-16383,
+        // with the median (8192) being no bend. This is converted to semitones
+        // according to the range specified in the settings.
+        const midiPitchBend = ((event.data[1] << 7 | event.data[0]) - 8192) / 8192;
+        const pitchEvent = {
+          time: event.time,
+          value: midiPitchBend * Settings.getSetting("pitchbendrange")
+        };
+
+        MidiToNotes.pitchBendEvents.push(pitchEvent)
+      }
+    }
+  }
+
+  /**
+   * Finds the pitch adjust amount at a given time in the MIDI. If the MIDI time
+   * is between two pitch bend events then the amount is found by a linear 
+   * interpolation between the previous and next events. E.g. a time halfway between 
+   * events of +0.5 and +1.0 semitones will have an adjust amount of +0.75.
+   */
+  function getPitchBendAdjustmentAtTime(midiTime) {
+    const eventIndex = MidiToNotes.pitchBendEvents.findLastIndex((event) => event.time <= midiTime);
+    if (eventIndex === -1) return 0;
+    const pitchEvent = MidiToNotes.pitchBendEvents[eventIndex];
+
+    if (eventIndex === MidiToNotes.pitchBendEvents.length - 1) return pitchEvent.value;
+    const nextPitchEvent = MidiToNotes.pitchBendEvents[eventIndex + 1];
+
+    const timeDelta = nextPitchEvent.time - pitchEvent.time;
+    const pitchDelta = nextPitchEvent.value - pitchEvent.value;
+
+    return pitchEvent.value + (midiTime - pitchEvent.time) / timeDelta * pitchDelta;
+  }
+
+  /**
+   * Applies pitch bend, validates the final note, then converts to TC format.
+   * Warnings are added for notes that are either out of range or unsnapped,
+   * out of range pitches will also optionally be clamped.
+   */
+  function convertPitch(midiPitch, midiPitchBend, midiTime, timeDivision) {
+    const snaps = [Settings.getSetting("snap"), 12];
+    const clampPitch = Settings.getSetting("clamppitch");
+    let adjustedMidiPitch = midiPitch + midiPitchBend;
+
+    warnIfUnsnapped(midiTime, timeDivision, snaps);
+
+    if (adjustedMidiPitch < 47 || adjustedMidiPitch > 73) {
+      midiWarnings.add(
+        clampPitch ? "Pitch clamped" : "Pitch out of range",
+        { adjustedMidiPitch, beat: midiTime / timeDivision }
+      );
+      if (clampPitch) adjustedMidiPitch = Math.min(Math.max(adjustedMidiPitch, 47), 73);
+    }
+
+    return (adjustedMidiPitch - 60) * 13.75;
   }
 
   function generateLyrics(sortedMidiEvents, timeDivision) {
@@ -218,23 +304,9 @@ const MidiToNotes = (function () {
   }
 
   function generateWarnings(sortedMidiEvents, timeDivision) {
-    const clampPitch = Settings.getSetting("clamppitch");
-    const snaps = [Settings.getSetting("snap"), 12];
-
     for (const event of sortedMidiEvents) {
       const eventType = getEventType(event);
-      if (eventType === "noteOn" || eventType === "noteOff") {
-        warnIfUnsnapped(event.time, timeDivision, snaps);
-
-        let pitch = event.data[0];
-        if (pitch < 47 || pitch > 73) {
-          midiWarnings.add(
-            clampPitch ? "Pitch clamped" : "Pitch out of range",
-            { pitch, beat: Math.floor(event.time / timeDivision) }
-          );
-          if (clampPitch) pitch = Math.min(Math.max(pitch, 47), 73);
-        }
-      } else if (eventType === "meta") {
+      if (eventType === "meta") {
         if (event.metaType === 81 && event.time !== 0) {
           // tempo change
           midiWarnings.add("Tempo change (unsupported)", {
