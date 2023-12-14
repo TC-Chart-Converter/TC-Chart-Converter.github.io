@@ -19,7 +19,8 @@ const Generate = (function () {
       ...inputs,
       notes: MidiToNotes.notes,
       lyrics: MidiToNotes.lyrics,
-      trackRef: inputs.trackRef || `${Math.random()}`,
+      trackRef: (inputs.prefixTrackRef ? Math.random().toString().substring(2) + '_' : '') + inputs.trackRef,
+      prefixTrackRef: undefined,
       endpoint: inputs.endpoint || MidiToNotes.calculatedEndpoint,
       UNK1: 0,
     };

@@ -16,7 +16,8 @@ const Inputs = (function () {
     notespacing: "savednotespacing",
     notestartcolor: "note_color_start",
     noteendcolor: "note_color_end",
-    foldername: "trackRef",
+    trackRef: "trackRef",
+    prefixTrackRef: "prefixTrackRef",
     songendpoint: "endpoint",
   };
 
@@ -39,6 +40,9 @@ const Inputs = (function () {
   /** Inputs that need to be formatted as colors */
   const colorInputNames = new Set(["notestartcolor", "noteendcolor"]);
 
+  /** Checkbox inputs fetch `checked` instead of `value` */
+  const checkboxInputNames = new Set(["prefixTrackRef"]);
+
   /** Returns whether all required fields are filled in */
   function verifyInputs() {
     for (const [inputName, input] of Object.entries(inputs)) {
@@ -59,6 +63,8 @@ const Inputs = (function () {
         result[inputMap[inputName]] = Number(input.value);
       } else if (colorInputNames.has(inputName)) {
         result[inputMap[inputName]] = Color.hexToFloats(input.value);
+      } else if (checkboxInputNames.has(inputName)) {
+        result[inputMap[inputName]] = input.checked;
       } else {
         result[inputMap[inputName]] = input.value;
       }
@@ -94,6 +100,9 @@ const Inputs = (function () {
       }
       input.dispatchEvent(new Event("change"));
     }
+
+    // Do not prefix if the trackRef was passed
+    if (obj.trackRef) inputs.prefixTrackRef.checked = false;
   }
 
   /** Converts a string to an number, warning if it's actually a float */
