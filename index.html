@@ -35,11 +35,11 @@
       <span>Slide mode</span>
       <div class="flexrow spacebetween">
         <span>
-          <input type="radio" id="slidemidi2tc" name="slidemode" checked>
+          <input type="radio" id="slidemidi2tc" name="slidemode">
           <label for="slidemidi2tc">midi2tc</label>
         </span>
         <span>
-          <input type="radio" id="slidetccc" name="slidemode">
+          <input type="radio" id="slidetccc" name="slidemode" checked>
           <label for="slidetccc">tccc</label>
         </span>
       </div>
@@ -104,7 +104,7 @@
 
       <h3>- Chart info -</h3>
 
-      <abbr title="Variable BPM and non-integer BPM are not supported">i</abbr>
+      <abbr title="Variable BPM and non-integer BPM are supported">i</abbr>
       <label for="bpm">BPM</label>
       <input type="number" id="bpm" name="bpm" min="1" max="1000">
 
@@ -144,7 +144,7 @@
 
       <abbr title="Whether TCCC should generate a random prefix for trackRef. This ensures trackRef will be globally unique.">i</abbr>
       <label for="prefixTrackRef">Prefix trackRef?</label>
-      <input type="checkbox" id="prefixTrackRef" name="prefixTrackRef" checked>
+      <input type="checkbox" id="prefixTrackRef" name="prefixTrackRef">
 
       <abbr title="The length of the song in measures. Leave this blank unless you need to manually set the endpoint.">i</abbr>
       <label for="songendpoint">Song Endpoint</label>
@@ -281,6 +281,10 @@
   <div class="container">
     <h2>Version history</h2>
     <p>
+      v1.9<br>
+      Added support for tempo changes
+    </p>
+    <p>
       v1.8a:<br>
       Changed "Song Folder" to "trackRef"
       Added option to generate unique trackRef prefix
@@ -379,7 +383,7 @@
   </div>
   <div class="footer">
     <p>
-      <a href="https://github.com/TC-Chart-Converter/TC-Chart-Converter.github.io/">Trombone Champ Chart Converter</a> by RShields, Gloomhonk, and contributors<br>
+      <a href="https://github.com/TC-Chart-Converter/TC-Chart-Converter.github.io/">Trombone Champ Chart Converter</a> by RShields, Gloomhonk, Emmett, and contributors<br>
       Licensed under the <a href="https://github.com/TC-Chart-Converter/TC-Chart-Converter.github.io/blob/main/LICENSE">GNU Affero General Public License v3.0</a><br>
       <br>
       <a href="https://github.com/colxi/midi-parser-js">MidiParser.js</a> by Sergi Guzman and contributors<br>
