@@ -16,8 +16,8 @@ const MidiToNotes = (function () {
     /** All the events in the midi file, sorted by time */
     const sortedMidiEvents = getSortedMidiEvents(midi);
 
-    collectPitchBendEvents(sortedMidiEvents, timeDivision);
-    generateWarnings(sortedMidiEvents, timeDivision);
+    collectPitchBendEvents(sortedMidiEvents);
+    adjustForTempoChanges(sortedMidiEvents);
 
     // Calculate endpoint
     for (let i = sortedMidiEvents.length - 1; i >= 0; i--) {
@@ -86,6 +86,13 @@ const MidiToNotes = (function () {
       let bPriority = 0;
       const aType = getEventType(a);
       const bType = getEventType(b);
+      // tempo change events have priority
+      if (aType === "meta" && a.metaType == 81) {
+        return -1;
+      }
+      if (bType === "meta" && b.metaType == 81) {
+        return 1;
+      }
       if (
         (aType === "noteOn" || aType === "noteOff") &&
         (bType === "noteOn" || bType === "noteOff")
@@ -110,6 +117,17 @@ const MidiToNotes = (function () {
     return allMidiEvents;
   }
 
+  function pushNote(startTime, timeDivision, length, tcStartPitch, tcEndPitch) {
+    const tcPitchDelta = tcEndPitch - tcStartPitch;
+    MidiToNotes.notes.push([
+      startTime / timeDivision,
+      length > 0 ? length / timeDivision : defaultNoteLength,
+      tcStartPitch,
+      tcPitchDelta,
+      tcEndPitch,
+    ]);
+  }
+
   function generateNotesMidi2Tc(sortedMidiEvents, timeDivision) {
     /** Note that we're currently creating */
     let currentNote;
@@ -128,15 +146,7 @@ const MidiToNotes = (function () {
             convertPitch(startPitch, startPitchBend, startTime, timeDivision);
           const tcEndPitch = 
             convertPitch(pitch, endPitchBend, event.time, timeDivision);
-          const tcPitchDelta = tcEndPitch - tcStartPitch;
-
-          MidiToNotes.notes.push([
-            startTime / timeDivision,
-            length > 0 ? length / timeDivision : defaultNoteLength,
-            tcStartPitch,
-            tcPitchDelta,
-            tcEndPitch,
-          ]);
+          pushNote(startTime, timeDivision, length, tcStartPitch, tcEndPitch);
 
           currentNote = undefined;
         }
@@ -151,15 +161,7 @@ const MidiToNotes = (function () {
             convertPitch(startPitch, startPitchBend, startTime, timeDivision);
           const tcEndPitch = 
             convertPitch(pitch, pitchBend, event.time, timeDivision);
-          const tcPitchDelta = tcEndPitch - tcStartPitch;
-
-          MidiToNotes.notes.push([
-            startTime / timeDivision,
-            length > 0 ? length / timeDivision : defaultNoteLength,
-            tcStartPitch,
-            tcPitchDelta,
-            tcEndPitch,
-          ]);
+          pushNote(startTime, timeDivision, length, tcStartPitch, tcEndPitch);
         }
 
         currentNote = {
@@ -189,15 +191,7 @@ const MidiToNotes = (function () {
             convertPitch(startPitch, startPitchBend, startTime, timeDivision);
           const tcEndPitch = 
             convertPitch(endPitch, endPitchBend, event.time, timeDivision);
-          const tcPitchDelta = tcEndPitch - tcStartPitch;
-
-          MidiToNotes.notes.push([
-            startTime / timeDivision,
-            length > 0 ? length / timeDivision : defaultNoteLength,
-            tcStartPitch,
-            tcPitchDelta,
-            tcEndPitch,
-          ]);
+          pushNote(startTime, timeDivision, length, tcStartPitch, tcEndPitch);
 
           currentNote = undefined;
         }
@@ -238,8 +232,29 @@ const MidiToNotes = (function () {
           value: midiPitchBend * Settings.getSetting("pitchbendrange")
         };
 
-        MidiToNotes.pitchBendEvents.push(pitchEvent)
+        MidiToNotes.pitchBendEvents.push(pitchEvent);
       }
+    }
+  }
+
+  /**
+   * Adjust time based on tempo changes
+   */
+  function adjustForTempoChanges(sortedMidiEvents) {
+    if (getEventType(sortedMidiEvents[0]) !== "meta" || sortedMidiEvents[0].metaType !== 81) {
+      return;
+    }
+    const baseTempo = sortedMidiEvents[0].data;
+    let currTempo = sortedMidiEvents[0].data;
+    let currTime = 0;
+    for (let i = 1; i < sortedMidiEvents.length - 1; i++) {
+      let event = sortedMidiEvents[i];
+      if (getEventType(event) === "meta" && event.metaType === 81) {
+        currTempo = event.data;
+      }
+      let adjustedTime = event.deltaTime * currTempo / baseTempo;
+      currTime += adjustedTime;
+      event.time = currTime;
     }
   }
 
@@ -299,20 +314,6 @@ const MidiToNotes = (function () {
           bar: event.time / timeDivision,
           text: event.data.trim(),
         });
-      }
-    }
-  }
-
-  function generateWarnings(sortedMidiEvents, timeDivision) {
-    for (const event of sortedMidiEvents) {
-      const eventType = getEventType(event);
-      if (eventType === "meta") {
-        if (event.metaType === 81 && event.time !== 0) {
-          // tempo change
-          midiWarnings.add("Tempo change (unsupported)", {
-            beat: Math.floor(event.time / timeDivision),
-          });
-        }
       }
     }
   }
