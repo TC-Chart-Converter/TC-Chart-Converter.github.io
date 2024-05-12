@@ -241,13 +241,19 @@ const MidiToNotes = (function () {
    * Adjust time based on tempo changes
    */
   function adjustForTempoChanges(sortedMidiEvents) {
-    if (getEventType(sortedMidiEvents[0]) !== "meta" || sortedMidiEvents[0].metaType !== 81) {
-      return;
+    let baseTempo;
+    let currTempo;
+    let i = 0;
+    for (; i < sortedMidiEvents.length - 1; i++) {
+      let event = sortedMidiEvents[i];
+      if (getEventType(event) === "meta" && event.metaType === 81) {
+        baseTempo = event.data;
+        currTempo = event.data;
+        break;
+      }
     }
-    const baseTempo = sortedMidiEvents[0].data;
-    let currTempo = sortedMidiEvents[0].data;
     let currTime = 0;
-    for (let i = 1; i < sortedMidiEvents.length - 1; i++) {
+    for (; i < sortedMidiEvents.length - 1; i++) {
       let event = sortedMidiEvents[i];
       if (getEventType(event) === "meta" && event.metaType === 81) {
         currTempo = event.data;
