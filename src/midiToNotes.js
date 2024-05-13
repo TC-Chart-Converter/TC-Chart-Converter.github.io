@@ -16,8 +16,8 @@ const MidiToNotes = (function () {
     /** All the events in the midi file, sorted by time */
     const sortedMidiEvents = getSortedMidiEvents(midi);
 
-    collectPitchBendEvents(sortedMidiEvents);
     adjustForTempoChanges(sortedMidiEvents);
+    collectPitchBendEvents(sortedMidiEvents);
 
     // Calculate endpoint
     for (let i = sortedMidiEvents.length - 1; i >= 0; i--) {
@@ -86,13 +86,11 @@ const MidiToNotes = (function () {
       let bPriority = 0;
       const aType = getEventType(a);
       const bType = getEventType(b);
-      // tempo change events have priority
-      if (aType === "meta" && a.metaType == 81) {
-        return -1;
-      }
-      if (bType === "meta" && b.metaType == 81) {
-        return 1;
-      }
+
+      // Tempo change events
+      if (aType === "meta" && a.metaType == 81) aPriority = 2;
+      if (bType === "meta" && b.metaType == 81) bPriority = 2;
+
       if (
         (aType === "noteOn" || aType === "noteOff") &&
         (bType === "noteOn" || bType === "noteOff")
@@ -238,28 +236,28 @@ const MidiToNotes = (function () {
   }
 
   /**
-   * Adjust time based on tempo changes
+   * Adjust note and event times based on tempo changes.
+   * Operates in-place!
    */
   function adjustForTempoChanges(sortedMidiEvents) {
-    let baseTempo;
-    let currTempo;
-    let i = 0;
-    for (; i < sortedMidiEvents.length - 1; i++) {
-      let event = sortedMidiEvents[i];
-      if (getEventType(event) === "meta" && event.metaType === 81) {
-        baseTempo = event.data;
-        currTempo = event.data;
-        break;
-      }
-    }
+    /**
+     * Value from the first tempo change, measured in microseconds per quarter note.
+     * MIDI files use a default of 500,000 (120 bpm) if no tempo event is provided.
+     */
+    let baseTempo = 500000;
+    /** Value from the last tempo change, measured in microseconds per quarter note */
+    let currTempo = baseTempo;
+
     let currTime = 0;
-    for (; i < sortedMidiEvents.length - 1; i++) {
-      let event = sortedMidiEvents[i];
+
+    for (const event of sortedMidiEvents) {
       if (getEventType(event) === "meta" && event.metaType === 81) {
+        if (event.time === 0) baseTempo = event.data;
         currTempo = event.data;
       }
-      let adjustedTime = event.deltaTime * currTempo / baseTempo;
-      currTime += adjustedTime;
+
+      let adjustedDeltaTime = event.deltaTime * currTempo / baseTempo;
+      currTime += adjustedDeltaTime;
       event.time = currTime;
     }
   }
