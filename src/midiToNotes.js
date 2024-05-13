@@ -16,8 +16,8 @@ const MidiToNotes = (function () {
     /** All the events in the midi file, sorted by time */
     const sortedMidiEvents = getSortedMidiEvents(midi);
 
-    collectPitchBendEvents(sortedMidiEvents, timeDivision);
-    generateWarnings(sortedMidiEvents, timeDivision);
+    adjustForTempoChanges(sortedMidiEvents);
+    collectPitchBendEvents(sortedMidiEvents);
 
     // Calculate endpoint
     for (let i = sortedMidiEvents.length - 1; i >= 0; i--) {
@@ -86,6 +86,11 @@ const MidiToNotes = (function () {
       let bPriority = 0;
       const aType = getEventType(a);
       const bType = getEventType(b);
+
+      // Tempo change events
+      if (aType === "meta" && a.metaType == 81) aPriority = 2;
+      if (bType === "meta" && b.metaType == 81) bPriority = 2;
+
       if (
         (aType === "noteOn" || aType === "noteOff") &&
         (bType === "noteOn" || bType === "noteOff")
@@ -110,6 +115,17 @@ const MidiToNotes = (function () {
     return allMidiEvents;
   }
 
+  function pushNote(startTime, timeDivision, length, tcStartPitch, tcEndPitch) {
+    const tcPitchDelta = tcEndPitch - tcStartPitch;
+    MidiToNotes.notes.push([
+      startTime / timeDivision,
+      length > 0 ? length / timeDivision : defaultNoteLength,
+      tcStartPitch,
+      tcPitchDelta,
+      tcEndPitch,
+    ]);
+  }
+
   function generateNotesMidi2Tc(sortedMidiEvents, timeDivision) {
     /** Note that we're currently creating */
     let currentNote;
@@ -128,15 +144,7 @@ const MidiToNotes = (function () {
             convertPitch(startPitch, startPitchBend, startTime, timeDivision);
           const tcEndPitch = 
             convertPitch(pitch, endPitchBend, event.time, timeDivision);
-          const tcPitchDelta = tcEndPitch - tcStartPitch;
-
-          MidiToNotes.notes.push([
-            startTime / timeDivision,
-            length > 0 ? length / timeDivision : defaultNoteLength,
-            tcStartPitch,
-            tcPitchDelta,
-            tcEndPitch,
-          ]);
+          pushNote(startTime, timeDivision, length, tcStartPitch, tcEndPitch);
 
           currentNote = undefined;
         }
@@ -151,15 +159,7 @@ const MidiToNotes = (function () {
             convertPitch(startPitch, startPitchBend, startTime, timeDivision);
           const tcEndPitch = 
             convertPitch(pitch, pitchBend, event.time, timeDivision);
-          const tcPitchDelta = tcEndPitch - tcStartPitch;
-
-          MidiToNotes.notes.push([
-            startTime / timeDivision,
-            length > 0 ? length / timeDivision : defaultNoteLength,
-            tcStartPitch,
-            tcPitchDelta,
-            tcEndPitch,
-          ]);
+          pushNote(startTime, timeDivision, length, tcStartPitch, tcEndPitch);
         }
 
         currentNote = {
@@ -189,15 +189,7 @@ const MidiToNotes = (function () {
             convertPitch(startPitch, startPitchBend, startTime, timeDivision);
           const tcEndPitch = 
             convertPitch(endPitch, endPitchBend, event.time, timeDivision);
-          const tcPitchDelta = tcEndPitch - tcStartPitch;
-
-          MidiToNotes.notes.push([
-            startTime / timeDivision,
-            length > 0 ? length / timeDivision : defaultNoteLength,
-            tcStartPitch,
-            tcPitchDelta,
-            tcEndPitch,
-          ]);
+          pushNote(startTime, timeDivision, length, tcStartPitch, tcEndPitch);
 
           currentNote = undefined;
         }
@@ -238,8 +230,35 @@ const MidiToNotes = (function () {
           value: midiPitchBend * Settings.getSetting("pitchbendrange")
         };
 
-        MidiToNotes.pitchBendEvents.push(pitchEvent)
+        MidiToNotes.pitchBendEvents.push(pitchEvent);
       }
+    }
+  }
+
+  /**
+   * Adjust note and event times based on tempo changes.
+   * Operates in-place!
+   */
+  function adjustForTempoChanges(sortedMidiEvents) {
+    /**
+     * Value from the first tempo change, measured in microseconds per quarter note.
+     * MIDI files use a default of 500,000 (120 bpm) if no tempo event is provided.
+     */
+    let baseTempo = 500000;
+    /** Value from the last tempo change, measured in microseconds per quarter note */
+    let currTempo = baseTempo;
+
+    let currTime = 0;
+
+    for (const event of sortedMidiEvents) {
+      if (getEventType(event) === "meta" && event.metaType === 81) {
+        if (event.time === 0) baseTempo = event.data;
+        currTempo = event.data;
+      }
+
+      let adjustedDeltaTime = event.deltaTime * currTempo / baseTempo;
+      currTime += adjustedDeltaTime;
+      event.time = currTime;
     }
   }
 
@@ -299,20 +318,6 @@ const MidiToNotes = (function () {
           bar: event.time / timeDivision,
           text: event.data.trim(),
         });
-      }
-    }
-  }
-
-  function generateWarnings(sortedMidiEvents, timeDivision) {
-    for (const event of sortedMidiEvents) {
-      const eventType = getEventType(event);
-      if (eventType === "meta") {
-        if (event.metaType === 81 && event.time !== 0) {
-          // tempo change
-          midiWarnings.add("Tempo change (unsupported)", {
-            beat: Math.floor(event.time / timeDivision),
-          });
-        }
       }
     }
   }
