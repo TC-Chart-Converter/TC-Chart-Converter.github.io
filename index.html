@@ -123,9 +123,9 @@
       <input type="number" id="difficulty" name="difficulty" value="5" min="1" max="10">
 
       <abbr
-        title="The higher this is, the faster the chart will scroll and the fewer notes will be on the screen at once. If unsure, set this to 180 and adjust from there.">i</abbr>
+        title="The higher this is, the faster the chart will scroll and the fewer notes will be on the screen at once. If left blank it the spacing will be automatically calculated based on BPM.">i</abbr>
       <label for="notespacing">Note Spacing</label>
-      <input type="number" id="notespacing" name="notespacing" min="1" max="1000" value="180">
+      <input type="number" id="notespacing" name="notespacing" min="1" max="1000" placeholder="Auto">
 
       <abbr title="Color of the start of the note">i</abbr>
       <label for="notestartcolor">Note Start Color</label>
@@ -285,6 +285,10 @@
 
   <div class="container">
     <h2>Version history</h2>
+    <p>
+      v1.9b<br>
+      Made Note Spacing optional. Default will automatically calculate based on 100/BPM*300
+    </p>
     <p>
       v1.9a<br>
       Increased maximum pitch bend range to 12 semitones

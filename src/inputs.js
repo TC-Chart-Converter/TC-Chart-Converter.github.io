@@ -22,7 +22,10 @@ const Inputs = (function () {
   };
 
   /** Inputs that are not required to be filled in */
-  const optionalInputNames = new Set(["songendpoint"]);
+  const optionalInputNames = new Set([
+    "notespacing",
+    "songendpoint",
+  ]);
 
   /** Inputs that need to be formatted as ints */
   const intInputNames = new Set([
@@ -32,6 +35,7 @@ const Inputs = (function () {
     "songendpoint",
     "beatsperbar",
   ]);
+
   /** Inputs that need to be formatted as floats */
   const floatInputNames = new Set([
     "bpm",
