@@ -118,10 +118,10 @@ const Inputs = (function () {
     return num;
   }
 
-  function calculateSpacing() {
-    let activeBPM = Inputs.inputs["bpm"].value || MidiToNotes.calculatedBPM
-    Inputs.calculatedSpacing = Math.ceil(100 / activeBPM * 300) || "Auto"
-    Inputs.inputs["notespacing"].placeholder = Inputs.calculatedSpacing
+  function calculateNoteSpacing() {
+    let activeBPM = Inputs.inputs["bpm"].value || MidiToNotes.calculatedBPM;
+    Inputs.calculatedSpacing = Math.ceil(100 / activeBPM * 300) || "Auto";
+    Inputs.inputs["notespacing"].placeholder = Inputs.calculatedSpacing;
   }
 
   Init.register(function () {
@@ -133,9 +133,9 @@ const Inputs = (function () {
 
     // Automatically calculate default Spacing whenever the BPM changes.
     document
-    .getElementById("bpm")
-    .addEventListener("change", calculateSpacing);
+      .getElementById("bpm")
+      .addEventListener("change", calculateNoteSpacing());
   });
 
-  return { inputs, readColors, readInputs, verifyInputs, writeInputs };
+  return { inputs, readColors, readInputs, verifyInputs, writeInputs, calculateNoteSpacing };
 })();

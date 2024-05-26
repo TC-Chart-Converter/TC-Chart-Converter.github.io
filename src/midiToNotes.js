@@ -19,9 +19,9 @@ const MidiToNotes = (function () {
     adjustForTempoChanges(sortedMidiEvents);
     collectPitchBendEvents(sortedMidiEvents);
 
-    Inputs.inputs["bpm"].placeholder = MidiToNotes.calculatedBPM || ""
-    Inputs.calculatedSpacing = Math.ceil(100 / MidiToNotes.calculatedBPM * 300) || "Auto" // duplicate from inputs.js.calculateSpacing() but I idk how to make it callable from here also sorry for the needlessly long comment that I am fully aware of making worse by writing this apology for the length of this comment but at this point I just found it funny, it's gotta go anyways.
-    Inputs.inputs["notespacing"].placeholder = Inputs.calculatedSpacing
+    // Calculate Tempo (if possible) and Note Spacing.
+    Inputs.inputs["bpm"].placeholder = MidiToNotes.calculatedBPM || "";
+    Inputs.calculateNoteSpacing();
 
     // Calculate endpoint
     for (let i = sortedMidiEvents.length - 1; i >= 0; i--) {
@@ -257,12 +257,14 @@ const MidiToNotes = (function () {
 
     let currTime = 0;
 
+    MidiToNotes.calculatedBPM = undefined;
+
     for (const event of sortedMidiEvents) {
       if (getEventType(event) === "meta" && event.metaType === 81) {
         if (event.time === 0)
           baseTempo = event.data;
         currTempo = event.data;
-          MidiToNotes.calculatedBPM = parseFloat((60000000 / baseTempo).toPrecision(6))
+          MidiToNotes.calculatedBPM = parseFloat((60000000 / baseTempo).toPrecision(6));
       }
 
       let adjustedDeltaTime = event.deltaTime * currTempo / baseTempo;
