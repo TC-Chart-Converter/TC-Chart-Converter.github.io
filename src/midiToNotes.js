@@ -19,6 +19,10 @@ const MidiToNotes = (function () {
     adjustForTempoChanges(sortedMidiEvents);
     collectPitchBendEvents(sortedMidiEvents);
 
+    Inputs.inputs["bpm"].placeholder = MidiToNotes.calculatedBPM || ""
+    Inputs.calculatedSpacing = Math.ceil(100 / MidiToNotes.calculatedBPM * 300) || "Enter BPM" // scuffed to have one extra copy of this but I couldn't figure something out yet
+    Inputs.inputs["notespacing"].placeholder = Inputs.calculatedSpacing
+
     // Calculate endpoint
     for (let i = sortedMidiEvents.length - 1; i >= 0; i--) {
       const eventType = getEventType(sortedMidiEvents[i]);
@@ -240,6 +244,7 @@ const MidiToNotes = (function () {
    * Operates in-place!
    */
   function adjustForTempoChanges(sortedMidiEvents) {
+    MidiToNotes.calculatedBPM = undefined
     /**
      * Value from the first tempo change, measured in microseconds per quarter note.
      * MIDI files use a default of 500,000 (120 bpm) if no tempo event is provided.
@@ -252,8 +257,10 @@ const MidiToNotes = (function () {
 
     for (const event of sortedMidiEvents) {
       if (getEventType(event) === "meta" && event.metaType === 81) {
-        if (event.time === 0) baseTempo = event.data;
+        if (event.time === 0)
+          baseTempo = event.data;
         currTempo = event.data;
+          MidiToNotes.calculatedBPM = 60000000 / baseTempo
       }
 
       let adjustedDeltaTime = event.deltaTime * currTempo / baseTempo;

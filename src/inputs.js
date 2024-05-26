@@ -50,7 +50,7 @@ const Inputs = (function () {
   /** Returns whether all required fields are filled in */
   function verifyInputs() {
     for (const [inputName, input] of Object.entries(inputs)) {
-      if (!optionalInputNames.has(inputName) && !input.value) {
+      if (!optionalInputNames.has(inputName) && !input.value && !MidiToNotes.calculatedBPM) {
         return false;
       }
     }
@@ -118,12 +118,23 @@ const Inputs = (function () {
     return num;
   }
 
+  function calculateSpacing() {
+    let activeBPM = Inputs.inputs["bpm"].value || MidiToNotes.calculatedBPM
+    Inputs.calculatedSpacing = Math.ceil(100 / activeBPM * 300) || "Auto"
+    Inputs.inputs["notespacing"].placeholder = Inputs.calculatedSpacing
+  }
+
   Init.register(function () {
     for (const inputName of Object.keys(inputMap)) {
       const input = document.getElementById(inputName);
       if (!input) throw `Could not find input: ${inputName}`;
       inputs[inputName] = input;
     }
+
+    // Automatically calculate default Spacing whenever the BPM changes.
+    document
+    .getElementById("bpm")
+    .addEventListener("change", calculateSpacing);
   });
 
   return { inputs, readColors, readInputs, verifyInputs, writeInputs };

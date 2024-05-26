@@ -17,7 +17,8 @@ const Generate = (function () {
 
     const chart = {
       ...inputs,
-      savednotespacing: inputs.savednotespacing || Math.ceil(100 / inputs.tempo * 300),
+      tempo: inputs.tempo || MidiToNotes.calculatedBPM,
+      savednotespacing: inputs.savednotespacing || Inputs.calculatedSpacing,
       notes: MidiToNotes.notes,
       lyrics: MidiToNotes.lyrics,
       trackRef: (inputs.prefixTrackRef ? Math.random().toString().substring(2) + '_' : '') + inputs.trackRef,
