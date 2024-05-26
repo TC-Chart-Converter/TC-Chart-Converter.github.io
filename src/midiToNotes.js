@@ -20,7 +20,7 @@ const MidiToNotes = (function () {
     collectPitchBendEvents(sortedMidiEvents);
 
     Inputs.inputs["bpm"].placeholder = MidiToNotes.calculatedBPM || ""
-    Inputs.calculatedSpacing = Math.ceil(100 / MidiToNotes.calculatedBPM * 300) || "Enter BPM" // scuffed to have one extra copy of this but I couldn't figure something out yet
+    Inputs.calculatedSpacing = Math.ceil(100 / MidiToNotes.calculatedBPM * 300) || "Auto" // duplicate from inputs.js.calculateSpacing() but I idk how to make it callable from here also sorry for the needlessly long comment that I am fully aware of making worse by writing this apology for the length of this comment but at this point I just found it funny, it's gotta go anyways.
     Inputs.inputs["notespacing"].placeholder = Inputs.calculatedSpacing
 
     // Calculate endpoint
