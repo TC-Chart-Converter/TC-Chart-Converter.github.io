@@ -251,14 +251,13 @@ const MidiToNotes = (function () {
     let currTime = 0;
 
     for (const event of sortedMidiEvents) {
+      let adjustedDeltaTime = event.deltaTime * currTempo / baseTempo;
+      currTime += adjustedDeltaTime;
+      event.time = currTime;
       if (getEventType(event) === "meta" && event.metaType === 81) {
         if (event.time === 0) baseTempo = event.data;
         currTempo = event.data;
       }
-
-      let adjustedDeltaTime = event.deltaTime * currTempo / baseTempo;
-      currTime += adjustedDeltaTime;
-      event.time = currTime;
     }
   }
 
