@@ -17,6 +17,7 @@ const Generate = (function () {
 
     const chart = {
       ...inputs,
+      tempo: inputs.tempo || MidiToNotes.calculatedBPM,
       notes: MidiToNotes.notes,
       lyrics: MidiToNotes.lyrics,
       trackRef: (inputs.prefixTrackRef ? Math.random().toString().substring(2) + '_' : '') + inputs.trackRef,

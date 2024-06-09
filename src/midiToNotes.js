@@ -19,6 +19,9 @@ const MidiToNotes = (function () {
     adjustForTempoChanges(sortedMidiEvents);
     collectPitchBendEvents(sortedMidiEvents);
 
+    // Calculate Tempo if available
+    Inputs.inputs["bpm"].placeholder = MidiToNotes.calculatedBPM || "";
+
     // Calculate endpoint
     for (let i = sortedMidiEvents.length - 1; i >= 0; i--) {
       const eventType = getEventType(sortedMidiEvents[i]);
@@ -243,12 +246,16 @@ const MidiToNotes = (function () {
     /**
      * Value from the first tempo change, measured in microseconds per quarter note.
      * MIDI files use a default of 500,000 (120 bpm) if no tempo event is provided.
+     * If the original BPM value doesn't convert to microseconds cleanly,
+     * the result is rounded which causes a conversion back to BPM to be slightly off.
      */
     let baseTempo = 500000;
     /** Value from the last tempo change, measured in microseconds per quarter note */
     let currTempo = baseTempo;
 
     let currTime = 0;
+
+    MidiToNotes.calculatedBPM = undefined; // reset for new files.
 
     for (const event of sortedMidiEvents) {
       let adjustedDeltaTime = event.deltaTime * currTempo / baseTempo;
@@ -257,6 +264,7 @@ const MidiToNotes = (function () {
       if (getEventType(event) === "meta" && event.metaType === 81) {
         if (event.time === 0) baseTempo = event.data;
         currTempo = event.data;
+        MidiToNotes.calculatedBPM = parseFloat((60000000 / baseTempo).toPrecision(6));
       }
     }
   }
