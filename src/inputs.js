@@ -46,7 +46,7 @@ const Inputs = (function () {
   /** Returns whether all required fields are filled in */
   function verifyInputs() {
     for (const [inputName, input] of Object.entries(inputs)) {
-      if (!optionalInputNames.has(inputName) && !input.value) {
+      if (!optionalInputNames.has(inputName) && !input.value && !MidiToNotes.calculatedBPM) {
         return false;
       }
     }
