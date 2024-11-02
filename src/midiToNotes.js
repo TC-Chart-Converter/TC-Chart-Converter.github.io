@@ -88,9 +88,14 @@ const MidiToNotes = (function () {
       const bType = getEventType(b);
 
       // Tempo change events
-      if (aType === "meta" && a.metaType == 81) aPriority = 2;
-      if (bType === "meta" && b.metaType == 81) bPriority = 2;
-
+      if (aType === "meta" && a.metaType === 81) {
+        aPriority = 2;
+        if (a.deltaTime === 0) a.deltaTime = [b.deltaTime, b.deltaTime = a.deltaTime][0];
+      } 
+      if (bType === "meta" && b.metaType === 81) {
+        bPriority = 2;
+        if (b.deltaTime === 0) b.deltaTime = [a.deltaTime, a.deltaTime = b.deltaTime][0];
+      } 
       if (
         (aType === "noteOn" || aType === "noteOff") &&
         (bType === "noteOn" || bType === "noteOff")
@@ -251,7 +256,7 @@ const MidiToNotes = (function () {
     let currTime = 0;
 
     for (const event of sortedMidiEvents) {
-      let adjustedDeltaTime = event.deltaTime * currTempo / baseTempo;
+      let adjustedDeltaTime = event.deltaTime * (currTempo / baseTempo);
       currTime += adjustedDeltaTime;
       event.time = currTime;
       if (getEventType(event) === "meta" && event.metaType === 81) {
