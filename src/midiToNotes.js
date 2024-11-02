@@ -88,8 +88,8 @@ const MidiToNotes = (function () {
       const bType = getEventType(b);
 
       // Tempo change events
-      if (aType === "meta" && a.metaType == 81) aPriority = 2;
-      if (bType === "meta" && b.metaType == 81) bPriority = 2;
+      if (aType === "meta" && a.metaType === 81) aPriority = 2;
+      if (bType === "meta" && b.metaType === 81) bPriority = 2;
 
       if (
         (aType === "noteOn" || aType === "noteOff") &&
@@ -111,6 +111,10 @@ const MidiToNotes = (function () {
       }
       return bPriority - aPriority;
     });
+
+    for (let i = 1; i < allMidiEvents.length; i++) {
+      allMidiEvents[i].deltaTime = allMidiEvents[i].time - allMidiEvents[i-1].time;
+    }
 
     return allMidiEvents;
   }
