@@ -102,6 +102,12 @@ h1, h2, h3 {
   height: auto;
 }
 
+#metaevents img {
+  align-self: center;
+  width: 50%;
+  height: auto;
+}
+
 ol, ul {
   margin: 0;
 }
