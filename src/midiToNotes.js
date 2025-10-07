@@ -39,6 +39,7 @@ const MidiToNotes = (function () {
     }
 
     generateLyrics(sortedMidiEvents, timeDivision);
+    generateImprovZones(sortedMidiEvents, timeDivision);
 
     midiWarnings.display();
     Preview.display();
@@ -325,6 +326,34 @@ const MidiToNotes = (function () {
     }
   }
 
+  /** 
+   * Creates improv zones by looking for pairs of text events with the strings 
+   * improv_start and improv_end.
+   */
+  function generateImprovZones(sortedMidiEvents, timeDivision) {
+    MidiToNotes.improvZones = [];
+    let currentImprovZone;
+
+    for (const event of sortedMidiEvents) {
+      if (getEventType(event) === "meta" && (event.metaType === 1)) {
+        const eventText = event.data.trim();
+        
+        if (eventText === "improv_start") {
+          currentImprovZone = {
+            start: event.time / timeDivision,
+          }; 
+        } else if (eventText === "improv_end" && currentImprovZone) {
+          MidiToNotes.improvZones.push([
+            currentImprovZone.start,
+            event.time / timeDivision,
+          ]);
+
+          currentImprovZone = undefined;
+        }
+      }
+    }
+  }
+
   /** Returns whether a note is snapped (quantized) */
   function warnIfUnsnapped(eventTime, timeDivision, snaps) {
     for (const snap of snaps) {
@@ -337,5 +366,5 @@ const MidiToNotes = (function () {
     });
   }
 
-  return { calculatedEndpoint: 1, generateNotes, lyrics: [], notes: [] };
+  return { calculatedEndpoint: 1, generateNotes, lyrics: [], notes: [], improvZones: [] };
 })();
