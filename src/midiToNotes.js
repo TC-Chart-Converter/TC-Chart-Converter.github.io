@@ -40,6 +40,7 @@ const MidiToNotes = (function () {
 
     generateLyrics(sortedMidiEvents, timeDivision);
     generateImprovZones(sortedMidiEvents, timeDivision);
+    generateBgEvents(sortedMidiEvents, timeDivision);
 
     midiWarnings.display();
     Preview.display();
@@ -354,6 +355,31 @@ const MidiToNotes = (function () {
     }
   }
 
+  /** 
+   * Creates background events by looking for text events in the format bg_[number].
+   */
+  function generateBgEvents(sortedMidiEvents, timeDivision) {
+    MidiToNotes.bgEvents = [];
+
+    for (const event of sortedMidiEvents) {
+      if (getEventType(event) === "meta" && (event.metaType === 1)) {
+        const eventText = event.data.trim();
+      
+        if (eventText.startsWith("bg_")) {
+          const bgEventId = parseInt(eventText.split("_").pop());
+
+          if (!isNaN(bgEventId)) {
+            MidiToNotes.bgEvents.push([
+              0.0, //Seconds field cannot be calculated until the chart bpm is finalized.
+              bgEventId,
+              event.time / timeDivision,
+            ]);
+          }
+        }
+      }
+    }
+  }
+
   /** Returns whether a note is snapped (quantized) */
   function warnIfUnsnapped(eventTime, timeDivision, snaps) {
     for (const snap of snaps) {
@@ -366,5 +392,5 @@ const MidiToNotes = (function () {
     });
   }
 
-  return { calculatedEndpoint: 1, generateNotes, lyrics: [], notes: [], improvZones: [] };
+  return { calculatedEndpoint: 1, generateNotes, lyrics: [], notes: [], improvZones: [], bgEvents: [] };
 })();
