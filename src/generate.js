@@ -15,6 +15,11 @@ const Generate = (function () {
 
     const inputs = Inputs.readInputs(generateWarnings);
 
+    if (inputs.tempo <= 0) {
+      alert("Please ensure BPM is greater than zero.");
+      return;
+    }
+
     //Chart tempo is now finalized, so calculate the time in seconds for any bg events.
     for (const bgEvent of MidiToNotes.bgEvents) {
       bgEvent[0] = bgEvent[2] * (60.0 / inputs.tempo);

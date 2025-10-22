@@ -370,10 +370,15 @@ const MidiToNotes = (function () {
 
           if (!isNaN(bgEventId)) {
             MidiToNotes.bgEvents.push([
-              0.0, //Seconds field cannot be calculated until the chart bpm is finalized.
+              -1.0, //Seconds field cannot be calculated until the chart bpm is finalized.
               bgEventId,
               event.time / timeDivision,
             ]);
+          }
+          else {
+            midiWarnings.add("BG event ID is not a number", {
+              beat: event.time / timeDivision
+            });
           }
         }
       }
