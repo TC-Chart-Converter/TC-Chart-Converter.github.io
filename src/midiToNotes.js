@@ -40,6 +40,7 @@ const MidiToNotes = (function () {
 
     generateLyrics(sortedMidiEvents, timeDivision);
     generateImprovZones(sortedMidiEvents, timeDivision);
+    generateBgEvents(sortedMidiEvents, timeDivision);
 
     midiWarnings.display();
     Preview.display();
@@ -326,7 +327,7 @@ const MidiToNotes = (function () {
     }
   }
 
-  /** 
+  /**
    * Creates improv zones by looking for pairs of text events with the strings 
    * improv_start and improv_end.
    */
@@ -354,6 +355,38 @@ const MidiToNotes = (function () {
     }
   }
 
+  /**
+   * Creates background events by looking for text events in the format bg_[number]
+   */
+  function generateBgEvents(sortedMidiEvents, timeDivision) {
+    MidiToNotes.bgEvents = [];
+
+    for (const event of sortedMidiEvents) {
+      if (getEventType(event) === "meta" && (event.metaType === 1)) {
+        const eventText = event.data.trim();
+      
+        if (eventText.startsWith("bg_")) {
+          const bgEventId = parseInt(eventText.slice(3));
+
+          if (isNaN(bgEventId)) {
+            midiWarnings.add("BG event ID is not a number", {
+              eventText,
+              beat: event.time / timeDivision,
+            });
+            continue;
+          }
+
+          MidiToNotes.bgEvents.push([
+            // Seconds field cannot be calculated until the chart bpm is finalized
+            -1.0,
+            bgEventId,
+            event.time / timeDivision,
+          ]);
+        }
+      }
+    }
+  }
+
   /** Returns whether a note is snapped (quantized) */
   function warnIfUnsnapped(eventTime, timeDivision, snaps) {
     for (const snap of snaps) {
@@ -366,5 +399,5 @@ const MidiToNotes = (function () {
     });
   }
 
-  return { calculatedEndpoint: 1, generateNotes, lyrics: [], notes: [], improvZones: [] };
+  return { calculatedEndpoint: 1, generateNotes, lyrics: [], notes: [], improvZones: [], bgEvents: [] };
 })();
