@@ -327,7 +327,7 @@ const MidiToNotes = (function () {
     }
   }
 
-  /** 
+  /**
    * Creates improv zones by looking for pairs of text events with the strings 
    * improv_start and improv_end.
    */
@@ -355,8 +355,8 @@ const MidiToNotes = (function () {
     }
   }
 
-  /** 
-   * Creates background events by looking for text events in the format bg_[number].
+  /**
+   * Creates background events by looking for text events in the format bg_[number]
    */
   function generateBgEvents(sortedMidiEvents, timeDivision) {
     MidiToNotes.bgEvents = [];
@@ -366,20 +366,22 @@ const MidiToNotes = (function () {
         const eventText = event.data.trim();
       
         if (eventText.startsWith("bg_")) {
-          const bgEventId = parseInt(eventText.split("_").pop());
+          const bgEventId = parseInt(eventText.slice(3));
 
-          if (!isNaN(bgEventId)) {
-            MidiToNotes.bgEvents.push([
-              -1.0, //Seconds field cannot be calculated until the chart bpm is finalized.
-              bgEventId,
-              event.time / timeDivision,
-            ]);
-          }
-          else {
+          if (isNaN(bgEventId)) {
             midiWarnings.add("BG event ID is not a number", {
-              beat: event.time / timeDivision
+              eventText,
+              beat: event.time / timeDivision,
             });
+            continue;
           }
+
+          MidiToNotes.bgEvents.push([
+            // Seconds field cannot be calculated until the chart bpm is finalized
+            -1.0,
+            bgEventId,
+            event.time / timeDivision,
+          ]);
         }
       }
     }
