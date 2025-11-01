@@ -7,6 +7,7 @@ const Inputs = (function () {
     songname: "name",
     shortname: "shortName",
     artist: "author",
+    charter: "charter",
     releaseyear: "year",
     genre: "genre",
     description: "description",
