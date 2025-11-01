@@ -23,7 +23,7 @@ const Inputs = (function () {
   };
 
   /** Inputs that are not required to be filled in */
-  const optionalInputNames = new Set(["songendpoint"]);
+  const optionalInputNames = new Set(["songendpoint", "charter"]);
 
   /** Inputs that need to be formatted as ints */
   const intInputNames = new Set([
